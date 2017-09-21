@@ -34,62 +34,14 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(dotDelay);
         }
 
-        loadingImage.SetActive(false);
-    }
-
-    // void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
-    // {
-    //     instance.level++;
-    //     instance.InitGame();
-    // }
-
-    // /// <summary>
-    // /// This function is called when the object becomes enabled and active.
-    // /// </summary>
-    // void OnEnable()
-    // {
-    //     SceneManager.sceneLoaded += OnLevelFinishedLoading;
-    // }
-
-    // /// <summary>
-    // /// This function is called when the behaviour becomes disabled or inactive.
-    // /// </summary>
-    // void OnDisable()
-    // {
-    //     SceneManager.sceneLoaded -= OnLevelFinishedLoading;
-    // }
-
-    // void HideLoadingImage()
-    // {
-    //     loadingImage.SetActive(false);
-    //     doingSetup = false;
-    // }
-
-    public void GameOver()
-    {
-        mainText.text = "Glitched at room number " + level + ".\n\nLoading new program . . .";
-        loadingImage.SetActive(true);
-
-        this.enabled = false;
+        loadingImage.transform.parent.gameObject.SetActive(false);
     }
 
     void DrawScene()
     {
-        int i;
-        Vector3 _position;
-
         foreach(Vector3 keyPoints in generator.solutionKeyPoints)
         {
-            i = 0;
-            foreach(Vector3 passPoints in generator.solution)
-            {
-                if(generator.solutionKeyPoints[i] == generator.solutionKeyPoints[generator.solution.Count-1])
-                    return;
-
-                _position = generator.solutionKeyPoints[i];
-                while(_position != generator.solutionKeyPoints[i+1])
-                Instantiate(tile, passPoints, Quaternion.identity);
-            }
+            Instantiate(tile, keyPoints, Quaternion.identity);
         }
     }
 
@@ -97,17 +49,17 @@ public class GameManager : MonoBehaviour
     {
         doingSetup = true;
 
-        Debug.LogWarning("Setting up scene");
-
         mainText.text = "ROOM " + level;
-
-        StartCoroutine(generator.Init(level));
 
         StartCoroutine(DisplayLoadingText());
 
-        //DrawScene();
+        generator.Init(level);
 
-        doingSetup = false;
+        Debug.LogWarning("DRAWING SCENE");
+
+        DrawScene();
+
+        //doingSetup = false;
     }
 
     void Awake()

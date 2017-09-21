@@ -55,10 +55,6 @@ public class LevelGenerator : MonoBehaviour
     
             //_dir = possibilities[Random.Range(0, possibilities.Count)];
             _dir = possibilities[(int)Random.Range(0, possibilities.Count)];
- 
-            Debug.LogWarning(string.Format("possibilities.Count = {0}", possibilities.Count));
-            Debug.LogWarning(string.Format("_dir = {0}", _dir));
-
             // down
             if(_dir == 0)
                 if(!targetRoom.wallList.Contains(Room.Walls.down) && targetRoom.position.y-1 >= 0)
@@ -164,6 +160,7 @@ public class LevelGenerator : MonoBehaviour
                 }
 
                 // DEBUG: Need to check for other rooms around !!
+                // HACK: Works for max 5 rooms ;)
 
                 // Depending on the room's position, some walls are obligatory
                 if(newRoomPos.x == 0)
@@ -200,8 +197,6 @@ public class LevelGenerator : MonoBehaviour
                 // if our wall list does NOT contain '(Room.Walls)randomPick'
                 if(!newRoomWalls.Contains((Room.Walls)randomPick))
                 {
-                    Debug.LogWarning("Adding wall . . . ");
-
                     switch(randomPick)
                     {
                         case 0:
@@ -219,19 +214,17 @@ public class LevelGenerator : MonoBehaviour
                     }
                 }
 
-                Debug.LogWarning(string.Format("Wall : {0}/2", newRoomWalls.Count));
-
                 // removing possibility for second check
                 if(newRoomWalls.Count != 0)
                     possibilities.Remove(randomPick);
-                else // BIG TROUBLES
+                else
                 {
                     Debug.LogError("ERROR PICKING A WALL !");
                     return;
                 }
             }
 
-            Debug.LogWarning(string.Format("New room added ! - ({0}, {1})", newRoomPos.x, newRoomPos.y));
+            Debug.Log(string.Format("New room added ! - ({0}, {1})", newRoomPos.x, newRoomPos.y));
 
             // Adding new room to our rooms layout
             rooms.Add(new Room(newRoomPos, Room.RoomType.path, oldRoom, newRoomWalls[0], newRoomWalls[1]));   
@@ -340,7 +333,7 @@ public class LevelGenerator : MonoBehaviour
                     _pointBuffer.x = (float)Mathf.Floor(randPoint2.x);
                 }
 
-                Debug.LogWarning("Cursor position = (" + _pointBuffer.x + ", " + _pointBuffer.y + ")");
+                Debug.Log("Cursor position = (" + _pointBuffer.x + ", " + _pointBuffer.y + ")");
                 _prevBuffer = _pointBuffer;
                 solution.Add(_pointBuffer); // keeping part of solution path
             }
@@ -354,6 +347,10 @@ public class LevelGenerator : MonoBehaviour
     {
         // adding solution path to platforms positions
         platforms = solution;
+
+        Debug.LogWarning("Platforms content : ");
+        foreach(Vector3 pos in platforms)
+            Debug.Log(pos.ToString());
 
         int x, y;
         int randomPick;
@@ -380,12 +377,16 @@ public class LevelGenerator : MonoBehaviour
                 }
 
             }
+
+            foreach(Vector3 pos in platforms)
+                Debug.Log(pos.ToString());
     }
 
-    public IEnumerator Init(int level)
+//    public IEnumerator Init(int level)
+    public void Init(int level)
     {
         --level;
-        AsyncOperation async = SceneManager.LoadSceneAsync(level);
+        //AsyncOperation async = SceneManager.LoadSceneAsync(level);
 
         Debug.LogWarning("INITIALIZATING ROOMS");
         InitRooms();
@@ -396,8 +397,8 @@ public class LevelGenerator : MonoBehaviour
         Debug.LogWarning("GENERATING PLATFORMS");
         GeneratePlatforms();
 
-        while(!async.isDone)
-            yield return null;
+        //while(!async.isDone)
+            //yield return null;
         
     }
 
