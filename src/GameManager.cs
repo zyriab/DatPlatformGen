@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
 
         DrawScene();
 
-        //doingSetup = false;
+        doingSetup = false;
     }
 
     void Awake()
