@@ -82,9 +82,7 @@ public class GameManager : MonoBehaviour
         generator = GetComponent<LevelGenerator>();
 
         InitGame();
-
-        player.transform.position = generator.solutionLinks[0];
-        player.transform.Translate(0, 5, 0);
+        
         player.SetActive(true);
     }
 }
