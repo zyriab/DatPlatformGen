@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
@@ -39,11 +38,19 @@ public class GameManager : MonoBehaviour
 
     void DrawScene()
     {
-        foreach(Vector3 keyPoints in generator.solutionKeyPoints)
+        Vector3 coord = new Vector3();
+
+        foreach(LevelGenerator.Room roomItem in generator.rooms)
         {
-            Instantiate(tile, keyPoints, Quaternion.identity);
+            foreach(Vector3 keyPoint in roomItem.platformList)
+            {
+                coord.x = (roomItem.position.x*LevelGenerator.Room.size.x) + keyPoint.x;
+                coord.y = (roomItem.position.y*LevelGenerator.Room.size.y) + keyPoint.y;
+
+                Instantiate(tile, coord, Quaternion.identity);
+            }
         }
-    }
+}
 
     void InitGame()
     {
@@ -53,7 +60,7 @@ public class GameManager : MonoBehaviour
 
         StartCoroutine(DisplayLoadingText());
 
-        generator.Init(level);
+        generator.Init();
 
         Debug.LogWarning("DRAWING SCENE");
 
@@ -76,6 +83,8 @@ public class GameManager : MonoBehaviour
 
         InitGame();
 
+        player.transform.position = generator.solutionLinks[0];
+        player.transform.Translate(0, 5, 0);
         player.SetActive(true);
     }
 }

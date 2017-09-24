@@ -11,11 +11,43 @@ public class LevelGenerator : MonoBehaviour
     public int ROOMS_NUMBER = 6;
 
     public List<Room> rooms = new List<Room>();
-    public List<Vector3> solution = new List<Vector3>();
-    public List<Vector3> solutionKeyPoints = new List<Vector3>();
-    public List<Vector3> platforms = new List<Vector3>();
+    public List<Vector3> solution = new List<Vector3>(); // All major point in the solution path
+    public List<Vector3> solutionLinks = new List<Vector3>(); // All platforms in-between points composing the solution path
+    public List<Vector3> platforms = new List<Vector3>(); // all random platforms
+    public List<Vector3> globalPlatforms = new List<Vector3>(); // All platforms, including solutions platforms
 
-    protected List<Vector3> roomsToVector3 = new List<Vector3>();
+    protected List<Vector3> roomsToVector3 = new List<Vector3>(); // Coordinates of the rooms inside a 6x5 2D array
+
+    // Represents a room of 20x16 2D Array
+    public class Room
+    {
+        public static Vector2 size = new Vector2(20, 16);
+        
+        public Vector2 position;
+        
+        public List<Walls> wallList = new List<Walls>();
+        public List<Vector3> platformList = new List<Vector3>();
+
+        public RoomType type;
+
+        public Room prevRoom;
+        public Room nextRoom;
+
+        public enum Walls {down, up, left, right};
+        public enum RoomType {start, end, path};
+
+        public Room(Vector3 pos, RoomType rt, Room prvRoom, params Walls[] _wall)
+        {
+            position = pos;
+            type = rt;
+
+            prevRoom = prvRoom;
+
+            foreach(Walls item in _wall)
+                wallList.Add(item);
+        }
+
+    }
 
     // Returns a possible position next to 'targetRoom'
     public Vector3 FindPath(Room targetRoom)
@@ -53,8 +85,8 @@ public class LevelGenerator : MonoBehaviour
         do
         {
     
-            //_dir = possibilities[Random.Range(0, possibilities.Count)];
             _dir = possibilities[(int)Random.Range(0, possibilities.Count)];
+
             // down
             if(_dir == 0)
                 if(!targetRoom.wallList.Contains(Room.Walls.down) && targetRoom.position.y-1 >= 0)
@@ -99,9 +131,6 @@ public class LevelGenerator : MonoBehaviour
 
         List<Room.Walls> newRoomWalls = new List<Room.Walls>();
 
-
-        Debug.Log("Creating starting room . . .");
-
         rooms.Add(new Room(new Vector3(0, 0), Room.RoomType.start, null, Room.Walls.down, Room.Walls.left, (Room.Walls)randomPick));
         roomsToVector3.Add(new Vector3(0,0));
         ++n_room;
@@ -115,7 +144,7 @@ public class LevelGenerator : MonoBehaviour
 
             oldRoom = rooms[rooms.Count-1];
             Debug.Log("Done");
-            Debug.Log(string.Format("Getting old room ({0}, {1})", oldRoom.position.x, oldRoom.position.y));
+            Debug.Log(string.Format("Getting old room ({0}, {1}) -- [{2}, {3}]", oldRoom.position.x, oldRoom.position.y, oldRoom.position.x*20, oldRoom.position.y*16));
 
 
             Debug.Log("Getting path");
@@ -159,9 +188,7 @@ public class LevelGenerator : MonoBehaviour
                     possibilities.Remove(0);
                 }
 
-                // DEBUG: Need to check for other rooms around !!
                 // HACK: Works for max 5 rooms ;)
-
                 // Depending on the room's position, some walls are obligatory
                 if(newRoomPos.x == 0)
                     if(possibilities.Contains(2))
@@ -224,7 +251,7 @@ public class LevelGenerator : MonoBehaviour
                 }
             }
 
-            Debug.Log(string.Format("New room added ! - ({0}, {1})", newRoomPos.x, newRoomPos.y));
+            Debug.Log(string.Format("New room added ! - ({0}, {1}) -- [{2}, {3}]", newRoomPos.x, newRoomPos.y, newRoomPos.x*20, newRoomPos.x*16));
 
             // Adding new room to our rooms layout
             rooms.Add(new Room(newRoomPos, Room.RoomType.path, oldRoom, newRoomWalls[0], newRoomWalls[1]));   
@@ -285,11 +312,15 @@ public class LevelGenerator : MonoBehaviour
     {
         int randomPick;
         
+        // Used for the keypoints setting/finding
         Vector3 randPoint1, randPoint2, _pointBuffer;
         Vector3 _prevBuffer = new Vector3(-1, -1);
 
-        Debug.Log(rooms.Count + "Item in rooms");
+        // Used for the link-platforms between keypoints
+        Vector3 nextKeyPoint;
+        int index = 0;
 
+        // Generating the path's key points, from room to room
         foreach(Room item in rooms)
         {
             if(item == rooms[rooms.Count-1])
@@ -306,8 +337,8 @@ public class LevelGenerator : MonoBehaviour
             randPoint1.x = (float)Mathf.Floor(randPoint1.x);
             randPoint1.y = (float)Mathf.Floor(randPoint1.y);
 
-            solutionKeyPoints.Add(randPoint1);
-            solutionKeyPoints.Add(randPoint2);
+            solutionLinks.Add(randPoint1);
+            solutionLinks.Add(randPoint2);
 
             _pointBuffer = randPoint1;
 
@@ -333,61 +364,76 @@ public class LevelGenerator : MonoBehaviour
                     _pointBuffer.x = (float)Mathf.Floor(randPoint2.x);
                 }
 
-                Debug.Log("Cursor position = (" + _pointBuffer.x + ", " + _pointBuffer.y + ")");
                 _prevBuffer = _pointBuffer;
+                item.platformList.Add(_pointBuffer);
                 solution.Add(_pointBuffer); // keeping part of solution path
             }
 
         }
 
+        // Generating platforms between all key points
+        foreach(Room roomItem in rooms)
+        {
+            foreach(Vector3 keyPoint in roomItem.platformList)
+            {
+                nextKeyPoint = (roomItem.platformList[index]);
+
+                while(keyPoint.x != nextKeyPoint.x)
+                {
+                    if(keyPoint.x < nextKeyPoint.x)
+                        solutionLinks.Add(new Vector3(keyPoint.x+1, keyPoint.y));
+                    else if(keyPoint.x > nextKeyPoint.x)
+                        solutionLinks.Add(new Vector3(keyPoint.x-1, keyPoint.y));
+                }
+
+                while(keyPoint.y != nextKeyPoint.y)
+                {
+                    if(keyPoint.y < nextKeyPoint.y)
+                        solutionLinks.Add(new Vector3(keyPoint.x, keyPoint.y+1));
+                    else if(keyPoint.y > nextKeyPoint.y)
+                        solutionLinks.Add(new Vector3(keyPoint.x, keyPoint.y-1));
+                }
+            }
+        }
     }
 
     // Generates all platform, hiding the solution path
     public void GeneratePlatforms()
     {
-        // adding solution path to platforms positions
-        platforms = solution;
-
-        Debug.LogWarning("Platforms content : ");
-        foreach(Vector3 pos in platforms)
-            Debug.Log(pos.ToString());
-
+        // Adding solution path to platforms positions        
         int x, y;
         int randomPick;
 
         Vector3 _pointBuffer = new Vector3();
 
-        for(x = 0; x < Room.size.x+1; x++)
-            for(y = 0; y < Room.size.y+1; y++)
-            {
-                _pointBuffer.x = x;
-                _pointBuffer.y = y;
-
-                randomPick = Random.Range(0,2);
-
-                //FIXME: Chaotic !!!!!
-
-                switch(randomPick)
+        
+        foreach(Room roomItem in rooms)
+        {
+            for(x = 0; x < Room.size.x+1; x++)
+                for(y = 0; y < Room.size.y+1; y++)
                 {
-                    case 0:
-                        platforms.Add(_pointBuffer);
-                        break;
-                    default:
-                        break;
+                    _pointBuffer.x = x;
+                    _pointBuffer.y = y;
+
+                    randomPick = Random.Range(0,2);
+
+                    //FIXME: Chaotic !
+
+                    switch(randomPick)
+                    {
+                        case 0:
+                            roomItem.platformList.Add(_pointBuffer);
+                            platforms.Add(_pointBuffer);
+                            break;
+                        default:
+                            break;
+                    }
                 }
-
-            }
-
-            foreach(Vector3 pos in platforms)
-                Debug.Log(pos.ToString());
+        }
     }
 
-//    public IEnumerator Init(int level)
-    public void Init(int level)
+    public void Init()
     {
-        --level;
-        //AsyncOperation async = SceneManager.LoadSceneAsync(level);
-
         Debug.LogWarning("INITIALIZATING ROOMS");
         InitRooms();
 
@@ -396,39 +442,7 @@ public class LevelGenerator : MonoBehaviour
 
         Debug.LogWarning("GENERATING PLATFORMS");
         GeneratePlatforms();
-
-        //while(!async.isDone)
-            //yield return null;
         
     }
 
-    public class Room
-    {
-        public readonly static Vector2 size = new Vector2(20, 16);
-        
-        public Vector2 position;
-        
-        public List<Walls> wallList = new List<Walls>();
-        public List<Vector3> platformList = new List<Vector3>();
-
-        public RoomType type;
-
-        public Room prevRoom;
-        public Room nextRoom;
-
-        public enum Walls {down, up, left, right};
-        public enum RoomType {start, end, path};
-
-        public Room(Vector3 pos, RoomType rt, Room prvRoom, params Walls[] _wall)
-        {
-            position = pos;
-            type = rt;
-
-            prevRoom = prvRoom;
-
-            foreach(Walls item in _wall)
-                wallList.Add(item);
-        }
-
-    }
 }
