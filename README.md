@@ -1,7 +1,8 @@
 # DatPlatformGen
 Fast-prototyped procedural 2D platformer level generator
 
-The idea is that, when the player finishes a level, a new one is automatically generated -- WHERE FUN NEVER ENDS ¯\_( ͡° ͜ʖ ͡°)_/¯
+The idea is that, when the player finishes a level, a new one is automatically generated
+-- NOW FUN NEVER ENDS ¯\_( ͡° ͜ʖ ͡°)_/¯
 
 - Contains 2 generators : LevelGenerator && FlatLevelGenerator.
 - The GameManager is presented as example (and as well because I might lose it !)
@@ -19,8 +20,8 @@ Giving us at the end a feasible path for the player.
 The once the "solution path" is created, we add random platforms all over the map, so the player can't clearly see the "solution path"
 
 #### Note :
-        It is for the moment really bugged since I haven't yet implement a way for the player to move on the Y axis (i.e.: ladder, ropes, elevators, etc)
-        I need as well to implement more testing to end up with a playable level (and not some "arty-ish" kind-of-pixelated monster made of platforms tiles)
+It is for the moment really bugged since I haven't yet implement a way for the player to move on the Y axis (i.e.: ladder, ropes, elevators, etc).
+I need as well to implement more testing to end up with a playable level (and not some "arty-ish" kind-of-pixelated monster made of platforms tiles)
 
 
 ### FlatLevelGenerator
