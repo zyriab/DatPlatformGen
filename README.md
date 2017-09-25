@@ -2,7 +2,7 @@
 Fast-prototyped procedural 2D platformer level generator
 
 The idea is that, when the player finishes a level, a new one is automatically generated
--- NOW FUN NEVER ENDS ¯\_( ͡° ͜ʖ ͡°)_/¯
+</br> -- NOW FUN NEVER ENDS   ( ͡° ͜ʖ ͡°)
 
 - Contains 2 generators : LevelGenerator && FlatLevelGenerator.
 - The GameManager is presented as example (and as well because I might lose it !)
